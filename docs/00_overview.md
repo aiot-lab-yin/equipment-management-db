@@ -68,8 +68,8 @@ CREATE TABLE parts (
 
 # 📌 学生提出用チェックリスト
 
-- [ ] ER 図  
-- [ ] CREATE TABLE  
+- [X] ER 図  
+- [X] CREATE TABLE  
 - [ ] 初期 INSERT  
 - [ ] 新規部品登録 実行済  
 - [ ] 使用者／責任者変更 実行済  
