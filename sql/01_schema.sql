@@ -1,4 +1,11 @@
 -- sql/01_schema.sql
+-- Based on: docs/05_physical_design.md (MySQL 8.x / InnoDB physical design)
+-- Key decisions reflected here:
+--   - NOT NULL policy: equipment.project_id/location_id/manager_id required; equipment.user_id nullable
+--   - Reference tables: equipment_type_reference, equipment_status_reference (name NOT NULL)
+--   - History generation: Approach A (equipment UPDATE => equipment_events auto insert)
+--   - Enforcement: session variables @actor_id and @event_type required (BEFORE UPDATE trigger)
+--   - Indexes/FKs: follow physical design (FK constraints + search-oriented indexes)
 -- Equipment Management DB Schema (MySQL 8.x / InnoDB)
 -- Approach A: equipment UPDATE -> auto INSERT equipment_events
 -- Requires: SET @actor_id, SET @event_type before UPDATE
