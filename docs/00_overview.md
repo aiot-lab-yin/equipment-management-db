@@ -70,7 +70,7 @@ CREATE TABLE parts (
 
 - [X] ER 図  
 - [X] CREATE TABLE  
-- [ ] 初期 INSERT  
+- [X] 初期 INSERT  
 - [ ] 新規部品登録 実行済  
 - [ ] 使用者／責任者変更 実行済  
 - [ ] 貸出／返却 実行済  
