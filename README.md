@@ -125,7 +125,7 @@ mysql -u <user> -p equipment_management_db < tests/02_basic_crud.sql
   - ロック待ち
   - 分離レベルの挙動
   - デッドロック発生と対処
- などを確認します。
+  などを確認します。
 
 ---
 
@@ -153,6 +153,18 @@ mysql -u <user> -p equipment_management_db < tests/02_basic_crud.sql
 
 ---
 
+## Author
+
+- Name: Yin　Chen
+- Affiliation: Reitaku University
+- Role: Student / Maintainer
+
 ## ライセンス
 
-授業課題用（必要に応じて追記）。
+本リポジトリは **MIT License** の下で公開します。
+
+- 商用利用可
+- 改変・再配布可
+- 保証なし（AS IS）
+
+> 授業課題として作成していますが、将来の商用利用も可能なライセンスを採用しています。
