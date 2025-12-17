@@ -2,6 +2,20 @@
 
 購入・使用・貸出/返却・廃棄までの**機材ライフサイクル**を管理するための、データベース設計/実装/検証（テスト）用リポジトリです。
 
+## 目的と位置づけ
+
+本リポジトリは、**研究室の部品/機材管理システムのデータベース**として開発しています。
+同時に、授業の「データベース総合課題」の**解答例（サンプル）**も兼ねています。
+
+- 課題の要件・提出物の流れは `docs/00_overview.md` にまとめています。
+- 本リポジトリは、著者の運用上の経験や判断（例：履歴の残し方、権限制御の考え方）も反映した“実運用寄り”の版です。
+- **学生は、本リポジトリより簡潔な回答**（最小限のER/DDL/検証）でも課題として成立します。
+
+## 将来計画（実運用）
+
+将来的には、Web フロントエンドを用意し、研究室の部品管理として**実運用**できる形を目指します。
+（例：検索画面、貸出/返却の操作画面、履歴閲覧、権限に応じた操作制限）
+
 - 設計ドキュメント：`docs/`
 - SQL 実装：`sql/`
 - テスト：`tests/`
@@ -42,6 +56,26 @@
 └── evidence/
     └── screenshots/
 ```
+
+### 各ディレクトリの説明
+
+- **docs/**  
+  要件定義・ER 図・論理設計・物理設計・トランザクション設計など、
+  データベース設計に関するすべてのドキュメントを格納します。
+
+- **sql/**  
+  CREATE TABLE（DDL）、初期データ投入、基本操作、トランザクション例、
+  自由課題用クエリなど、実行用 SQL を格納します。
+
+- **tests/**  
+  制約検証、CRUD、貸出/返却、廃棄、検索、ROLLBACK、
+  並行実行・ロック確認などのテスト用 SQL／手順書を格納します。
+
+- **evidence/**  
+  実行結果の証跡（Before/After の SELECT 結果、エラー画面など）を保存します。
+
+- **evidence/screenshots/**  
+  提出・確認用のスクリーンショットを保存するためのディレクトリです。
 
 ---
 
@@ -144,12 +178,21 @@ mysql -u <user> -p equipment_management_db < tests/02_basic_crud.sql
 
 ## ドキュメント作成の流れ（推奨）
 
-1. `docs/01_requirements.md`（需要分析）
-2. `docs/03_er_diagram.md`（ER 図）
-3. `sql/01_schema.sql`（DDL）
-4. `sql/02_seed.sql`（初期データ）
-5. 機能 SQL / テスト SQL を実行して証跡保存
-6. `docs/08_validation_plan.md` と `docs/09_conclusion.md` を仕上げ
+1. `docs/00_overview.md` を確認（課題の要件・機能要件・検証課題セット）
+2. `docs/01_requirements.md`（需要分析）を作成（まず overview を元に整理）
+3. `docs/02_use_cases.md`（ユースケース詳細）を作成  
+   - overview に記載した **機能要件** と **検証課題セット** に合わせて作成する
+4. `docs/04_logical_design.md`（論理設計：1NF→2NF→参照テーブル化3NF）
+5. `docs/05_physical_design.md`（物理設計：MySQL 前提の制約・インデックス・トリガ方針）
+6. `docs/03_er_diagram.md`（ER 図）を更新（論理設計の結果を反映）
+7. `docs/06_transaction_design.md`（トランザクション設計）を作成 
+   - 省略してもよい
+8. `docs/07_query_design.md`（クエリ設計）を作成
+   - 省略してもよい
+9. `sql/01_schema.sql`（DDL）を実装
+10. `sql/02_seed.sql`（初期データ）を投入
+11. 機能 SQL / テスト SQL を実行して証跡保存（`evidence/screenshots/`）
+12. `docs/08_validation_plan.md`（検証計画）と `docs/09_conclusion.md`（まとめ）を仕上げ
 
 ---
 
