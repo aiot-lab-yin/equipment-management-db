@@ -5,7 +5,6 @@
 SET NAMES utf8mb4;
 
 
-
 -- 安全のため、必要に応じて TRUNCATE したい場合はコメントを外す
 -- ※ 外部キーがあるため順序に注意
 -- SET FOREIGN_KEY_CHECKS = 0;
@@ -95,6 +94,14 @@ INSERT INTO purchases (vendor_id, order_date, delivery_date, purchase_date, pric
 
 -- =============================
 -- 7) Equipment
+
+-- For equipment INSERT triggers (policy-2): require actor/event context
+SET @actor_id := (SELECT id FROM people WHERE user_name='admin01');
+SET @event_type := 'seed_insert';
+-- Optional vars (used only for specific event types)
+SET @loan_to_id := NULL;
+SET @return_to_id := NULL;
+
 -- project_id/location_id/manager_id は NOT NULL
 -- user_id は NULL 可
 -- =============================
@@ -162,6 +169,6 @@ INSERT INTO equipment_identifiers (equipment_id, university_id, funding_id) VALU
 
 -- =============================
 -- 9) Notes
--- - equipment_events は UPDATE トリガにより自動生成されるため、seedでは投入しない
+-- - equipment_events は INSERT/UPDATE トリガにより自動生成されるため、seedでは直接投入しない
 -- - 動作確認は tests/06_transaction_rollback.sql などで実施する
 -- =============================
