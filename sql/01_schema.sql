@@ -3,12 +3,12 @@
 -- Key decisions reflected here:
 --   - NOT NULL policy: equipment.project_id/location_id/manager_id required; equipment.user_id nullable
 --   - Reference tables: equipment_type_reference, equipment_status_reference (name NOT NULL)
---   - History generation: Approach A (equipment UPDATE => equipment_events auto insert)
+--   - History generation: Approach A (equipment INSERT/UPDATE => equipment_events auto insert)
 --   - Enforcement: session variables @actor_id and @event_type required (BEFORE UPDATE trigger)
 --   - Indexes/FKs: follow physical design (FK constraints + search-oriented indexes)
 -- Equipment Management DB Schema (MySQL 8.x / InnoDB)
--- Approach A: equipment UPDATE -> auto INSERT equipment_events
--- Requires: SET @actor_id, SET @event_type before UPDATE
+-- Approach A: equipment INSERT/UPDATE -> auto INSERT equipment_events
+-- Requires: SET @actor_id, SET @event_type before INSERT/UPDATE
 
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';
@@ -232,10 +232,56 @@ CREATE TABLE equipment_events (
   INDEX idx_events_to_status_time (to_status_code, event_timestamp)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TRIGGER IF EXISTS trg_equipment_before_insert;
+DROP TRIGGER IF EXISTS trg_equipment_after_insert;
 DROP TRIGGER IF EXISTS trg_equipment_before_update;
 DROP TRIGGER IF EXISTS trg_equipment_after_update;
 
 DELIMITER $$
+
+CREATE TRIGGER trg_equipment_before_insert
+BEFORE INSERT ON equipment
+FOR EACH ROW
+BEGIN
+  IF @actor_id IS NULL THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Missing session variable: @actor_id (people.id)';
+  END IF;
+
+  IF @event_type IS NULL THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Missing session variable: @event_type';
+  END IF;
+END$$
+
+CREATE TRIGGER trg_equipment_after_insert
+AFTER INSERT ON equipment
+FOR EACH ROW
+BEGIN
+  INSERT INTO equipment_events (
+    equipment_id,
+    event_type,
+    from_status_code,
+    to_status_code,
+    from_user_id,
+    to_user_id,
+    from_manager_id,
+    to_manager_id,
+    actor_id,
+    event_timestamp
+  ) VALUES (
+    NEW.equipment_id,
+    @event_type,
+    NEW.status_code,
+    NEW.status_code,
+    NULL,
+    NEW.user_id,
+    NEW.manager_id,
+    NEW.manager_id,
+    @actor_id,
+    NOW()
+  );
+END$$
 
 CREATE TRIGGER trg_equipment_before_update
 BEFORE UPDATE ON equipment

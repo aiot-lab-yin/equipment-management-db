@@ -4,7 +4,7 @@
 
 SET NAMES utf8mb4;
 
-USE sampledb;
+
 
 -- 安全のため、必要に応じて TRUNCATE したい場合はコメントを外す
 -- ※ 外部キーがあるため順序に注意
