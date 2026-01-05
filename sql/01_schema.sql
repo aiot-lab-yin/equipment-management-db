@@ -287,6 +287,10 @@ CREATE TRIGGER trg_equipment_before_update
 BEFORE UPDATE ON equipment
 FOR EACH ROW
 BEGIN
+  DECLARE v_old_terminal TINYINT(1);
+  DECLARE v_new_terminal TINYINT(1);
+
+  -- Require actor/event context
   IF @actor_id IS NULL THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Missing session variable: @actor_id (people.id)';
@@ -295,6 +299,63 @@ BEGIN
   IF @event_type IS NULL THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Missing session variable: @event_type';
+  END IF;
+
+  -- Terminal status lock (do not allow any updates once terminal)
+  SELECT is_terminal INTO v_old_terminal
+  FROM equipment_status_reference
+  WHERE code = OLD.status_code;
+
+  IF v_old_terminal = 1 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Terminal equipment cannot be updated (discarded/returned_to_funder, etc.)';
+  END IF;
+
+  -- Enforce event_type <-> target terminal status consistency
+  IF NEW.status_code = 'discarded' AND @event_type <> 'discard' THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'To set status=discarded, @event_type must be discard';
+  END IF;
+
+  IF NEW.status_code = 'returned_to_funder' AND @event_type <> 'return_to_funder' THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'To set status=returned_to_funder, @event_type must be return_to_funder';
+  END IF;
+
+  -- Minimal forbidden transitions
+  IF OLD.status_code = 'loaned' AND NEW.status_code = 'loaned' AND @event_type = 'loan' THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Double-loan is not allowed (already loaned)';
+  END IF;
+
+  IF OLD.status_code = 'loaned' AND (NEW.status_code = 'discarded' OR NEW.status_code = 'returned_to_funder') THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Cannot discard/return_to_funder while loaned';
+  END IF;
+
+  -- Loan / return destination must be provided (recorded in equipment_events)
+  IF @event_type = 'loan' THEN
+    IF @loan_to_id IS NULL THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Missing session variable: @loan_to_id (people.id) for loan';
+    END IF;
+  END IF;
+
+  IF @event_type = 'return' THEN
+    IF @return_to_id IS NULL THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Missing session variable: @return_to_id (people.id) for return';
+    END IF;
+  END IF;
+
+  -- Optional: prevent setting a terminal status via non-terminal event_type
+  SELECT is_terminal INTO v_new_terminal
+  FROM equipment_status_reference
+  WHERE code = NEW.status_code;
+
+  IF v_new_terminal = 1 AND NEW.status_code NOT IN ('discarded', 'returned_to_funder') THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Terminal status code is not allowed';
   END IF;
 END$$
 
@@ -317,6 +378,8 @@ BEGIN
       to_user_id,
       from_manager_id,
       to_manager_id,
+      loan_to_id,
+      return_to_id,
       actor_id,
       event_timestamp
     ) VALUES (
@@ -328,6 +391,8 @@ BEGIN
       NEW.user_id,
       OLD.manager_id,
       NEW.manager_id,
+      CASE WHEN @event_type = 'loan' THEN @loan_to_id ELSE NULL END,
+      CASE WHEN @event_type = 'return' THEN @return_to_id ELSE NULL END,
       @actor_id,
       NOW()
     );
