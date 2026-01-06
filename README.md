@@ -46,13 +46,31 @@
 │   ├── 04_transaction_cases.sql
 │   └── 05_free_queries.sql
 ├── tests/
-│   ├── 01_constraints.sql
-│   ├── 02_basic_crud.sql
-│   ├── 03_loan_return.sql
-│   ├── 04_discard.sql
-│   ├── 05_search.sql
-│   ├── 06_transaction_rollback.sql
-│   └── 07_concurrency_locking.md
+│   ├── 01_constraints/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   ├── 02_basic_crud/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   ├── 03_loan_return/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   ├── 04_discard/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   ├── 05_return_to_funder/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   ├── 07_transaction_rollback/
+│   │   ├── before.sql
+│   │   ├── action.sql
+│   │   └── after.sql
+│   └── 08_concurrency_locking.md
 └── evidence/
     └── screenshots/
 ```
@@ -138,23 +156,28 @@ mysql -u <user> -p equipment_management_db < sql/03_basic_operations.sql
 
 以下は SQL だけで実行できるテストです。
 
-- 制約テスト：`tests/01_constraints.sql`
-- CRUD テスト：`tests/02_basic_crud.sql`
-- 貸出/返却：`tests/03_loan_return.sql`
-- 廃棄：`tests/04_discard.sql`
-- 検索：`tests/05_search.sql`
-- ROLLBACK：`tests/06_transaction_rollback.sql`
+- 制約テスト：`tests/01_constraints/before.sql` / `action.sql` / `after.sql`
+- CRUD テスト：`tests/02_basic_crud/before.sql` / `action.sql` / `after.sql`
+- 貸出/返却：`tests/03_loan_return/before.sql` / `action.sql` / `after.sql`
+- 廃棄：`tests/04_discard/before.sql` / `action.sql` / `after.sql`
+- 提供元へ返却：`tests/05_return_to_funder/before.sql` / `action.sql` / `after.sql`
+- ROLLBACK：`tests/07_transaction_rollback/before.sql` / `action.sql` / `after.sql`
 
 例（CLI）：
 
 ```bash
-mysql -u <user> -p equipment_management_db < tests/01_constraints.sql
-mysql -u <user> -p equipment_management_db < tests/02_basic_crud.sql
+# 例: TEST 02 (before -> action -> after)
+mysql -u <user> -p equipment_management_db < tests/02_basic_crud/before.sql
+mysql -u <user> -p equipment_management_db < tests/02_basic_crud/action.sql
+mysql -u <user> -p equipment_management_db < tests/02_basic_crud/after.sql
+
+# 例: TEST 07 (before -> action -> after)
+mysql -u <user> -p equipment_management_db < tests/07_transaction_rollback/before.sql
+mysql -u <user> -p equipment_management_db < tests/07_transaction_rollback/action.sql
+mysql -u <user> -p equipment_management_db < tests/07_transaction_rollback/after.sql
 ```
 
-### 手動テスト（並行実行・ロック・デッドロック）
-
-- 手順書：`tests/07_concurrency_locking.md`
+- 手順書：`tests/08_concurrency_locking.md`
 - 2つのセッション（A/B）で同時実行し、
   - ロック待ち
   - 分離レベルの挙動
@@ -171,8 +194,8 @@ mysql -u <user> -p equipment_management_db < tests/02_basic_crud.sql
   - `01_insert_after.png`
   - `02_loan_before.png`
   - `02_loan_after.png`
-  - `06_rollback_before.png`
-  - `06_rollback_after.png`
+  - `07_rollback_before.png`
+  - `07_rollback_after.png`
 
 ---
 
