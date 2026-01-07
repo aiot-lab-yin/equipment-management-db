@@ -2,6 +2,24 @@
 
 購入・使用・貸出/返却・廃棄までの**機材ライフサイクル**を管理するための、データベース設計/実装/検証（テスト）用リポジトリです。
 
+## 目次
+
+- [目的と位置づけ](#目的と位置づけ)
+- [将来計画（実運用）](#将来計画実運用)
+- [ディレクトリ構成](#ディレクトリ構成)
+- [前提（推奨環境）](#前提推奨環境)
+- [セットアップ手順（最短）](#セットアップ手順最短)
+  - [1) データベース作成](#1-データベース作成)
+  - [2) スキーマ作成（CREATE TABLE）](#2-スキーマ作成create-table)
+  - [3) 初期データ投入（INSERT）](#3-初期データ投入insert)
+  - [（参考）Docker Compose を使用する場合](#参考docker-compose-を使用する場合)
+- [機能SQLの実行](#機能sqlの実行)
+- [テスト（検証）の実行](#テスト検証の実行)
+- [証跡（スクリーンショット）](#証跡スクリーンショット)
+- [ドキュメント作成の流れ（推奨）](#ドキュメント作成の流れ推奨)
+- [Author](#author)
+- [ライセンス](#ライセンス)
+
 ## 目的と位置づけ
 
 本リポジトリは、**研究室の部品/機材管理システムのデータベース**として開発しています。
@@ -27,52 +45,36 @@
 
 ```text
 .
-├── README.md
-├── docs/
-│   ├── 00_overview.md
-│   ├── 01_requirements.md
-│   ├── 02_use_cases.md
-│   ├── 03_er_diagram.md
-│   ├── 04_logical_design.md
-│   ├── 05_physical_design.md
-│   ├── 06_transaction_design.md
-│   ├── 07_query_design.md
-│   ├── 08_validation_plan.md
-│   └── 09_conclusion.md
-├── sql/
-│   ├── 01_schema.sql
-│   ├── 02_seed.sql
-│   ├── 03_basic_operations.sql
-│   ├── 04_transaction_cases.sql
-│   └── 05_free_queries.sql
-├── tests/
-│   ├── 01_constraints/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   ├── 02_basic_crud/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   ├── 03_loan_return/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   ├── 04_discard/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   ├── 05_return_to_funder/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   ├── 07_transaction_rollback/
-│   │   ├── before.sql
-│   │   ├── action.sql
-│   │   └── after.sql
-│   └── 08_concurrency_locking.md
+├── README.md                  # 本リポジトリの概要・セットアップ・実行手順の説明
+├── LICENSE                    # LICENSE
+├── docs/                      # データベース設計に関する各種ドキュメント
+│   ├── 00_overview.md         # 課題全体の概要・目的・要件一覧
+│   ├── 01_requirements.md     # 要件定義（管理対象・必要機能の整理）
+│   ├── 02_use_cases.md        # ユースケース定義（操作シナリオ）
+│   ├── 03_er_diagram.md       # ER図（概念設計）の説明
+│   ├── 04_logical_design.md   # 論理設計（正規化・テーブル構成）
+│   ├── 05_physical_design.md  # 物理設計（型・制約・インデックス）
+│   ├── 06_transaction_design.md # トランザクション設計
+│   ├── 07_query_design.md     # クエリ設計・検索例
+│   ├── 08_validation_plan.md  # 検証計画（テスト方針）
+│   └── 09_conclusion.md       # まとめ・考察
+├── sql/                       # 実行用SQLファイル
+│   ├── 01_schema.sql          # テーブル定義（DDL）
+│   ├── 02_seed.sql            # 初期データ投入
+│   ├── 03_basic_operations.sql # 基本CRUD操作
+│   ├── 04_transaction_cases.sql # トランザクション処理例
+│   └── 05_free_queries.sql    # 自由課題・応用検索クエリ
+├── tests/                     # 動作検証・テスト用SQL
+│   ├── 01_constraints/        # 制約（NOT NULL・外部キー）検証
+│   ├── 02_basic_crud/         # CRUD操作の検証
+│   ├── 03_loan_return/        # 貸出・返却処理の検証
+│   ├── 04_discard/            # 廃棄処理の検証
+│   ├── 05_return_to_funder/   # 提供元返却処理の検証
+│   ├── 06_free_queries/       # 自由課題・応用検索クエリの検証（テスト用）
+│   ├── 07_transaction_rollback/ # ROLLBACK動作の検証
+│   └── 08_concurrency_locking.md # 同時実行・ロック確認手順
 └── evidence/
-    └── screenshots/
+    └── screenshots/           # 実行結果（Before/After）の証跡スクリーンショット
 ```
 
 ### 各ディレクトリの説明
@@ -86,7 +88,7 @@
   自由課題用クエリなど、実行用 SQL を格納します。
 
 - **tests/**  
-  制約検証、CRUD、貸出/返却、廃棄、検索、ROLLBACK、
+  制約検証、CRUD、貸出/返却、廃棄、検索（自由課題/応用検索を含む）、ROLLBACK、
   並行実行・ロック確認などのテスト用 SQL／手順書を格納します。
 
 - **evidence/**  
@@ -130,6 +132,55 @@ mysql -u <user> -p equipment_management_db < sql/01_schema.sql
 
 ```bash
 mysql -u <user> -p equipment_management_db < sql/02_seed.sql
+```
+
+### （参考）Docker Compose を使用する場合
+
+Docker Compose で MySQL コンテナを起動している場合は、以下の手順でセットアップできます。
+
+#### 1) 起動中のコンテナ名を確認
+
+```bash
+docker compose ps
+```
+
+例：
+
+```text
+NAME                         SERVICE   STATUS    PORTS
+equipment-db-mysql-1         mysql     running   3306/tcp
+```
+
+以下では、コンテナ名を `equipment-db-mysql-1` と仮定します。
+
+#### 2) コンテナ内の MySQL に接続
+
+```bash
+docker exec -it equipment-db-mysql-1 mysql -u root -p
+```
+
+#### 3) データベース作成
+
+MySQL コンソール上で以下を実行します。
+
+```sql
+CREATE DATABASE equipment_management_db
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+#### 4) コンテナ外から SQL ファイルを実行
+
+別のターミナルで、リポジトリのルートディレクトリから以下を実行します。
+
+```bash
+# スキーマ作成
+docker exec -i equipment-db-mysql-1 \
+  mysql -u root -p equipment_management_db < sql/01_schema.sql
+
+# 初期データ投入
+docker exec -i equipment-db-mysql-1 \
+  mysql -u root -p equipment_management_db < sql/02_seed.sql
 ```
 
 ---
