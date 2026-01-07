@@ -136,22 +136,23 @@ mysql -u <user> -p equipment_management_db < sql/02_seed.sql
 
 ### （参考）Docker Compose を使用する場合
 
-Docker Compose で MySQL コンテナを起動している場合は、以下の手順でセットアップできます。
+Docker Compose（`docker compose up`）で MySQL を起動している場合でも、コンテナ名の確認は `docker ps` だけで問題ありません。
+以下では `docker ps` で表示されたコンテナ名（NAMES）を使って、MySQL への接続と SQL 実行を行います。
 
 #### 1) 起動中のコンテナ名を確認
 
 ```bash
-docker compose ps
+docker ps
 ```
 
 例：
 
 ```text
-NAME                         SERVICE   STATUS    PORTS
-equipment-db-mysql-1         mysql     running   3306/tcp
+CONTAINER ID   IMAGE       COMMAND                  NAMES
+a1b2c3d4e5f6   mysql:8.0   "docker-entrypoint.s…"   equipment-db-mysql-1
 ```
 
-以下では、コンテナ名を `equipment-db-mysql-1` と仮定します。
+以下では、コンテナ名を例として `equipment-db-mysql-1` と仮定します（`docker ps` の NAMES 欄を参照）。
 
 #### 2) コンテナ内の MySQL に接続
 
