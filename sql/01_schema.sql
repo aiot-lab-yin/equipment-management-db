@@ -10,6 +10,8 @@
 -- Approach A: equipment INSERT/UPDATE -> auto INSERT equipment_events
 -- Requires: SET @actor_id, SET @event_type before INSERT/UPDATE
 
+-- Session settings
+-- All timestamps are stored in UTC for reproducibility and consistency across environments
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';
 
